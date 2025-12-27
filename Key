@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Auth • Web Key</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;height:100vh;
+  display:flex;justify-content:center;align-items:center;
+  font-family:Segoe UI,Arial;
+  background:linear-gradient(135deg,#020617,#0f172a,#020617);
+  color:#fff;
+}
+.box{
+  width:380px;padding:28px;border-radius:18px;
+  background:rgba(30,41,59,.75);
+  backdrop-filter:blur(12px);
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+.tabs{display:flex;margin-bottom:15px}
+.tabs button{
+  flex:1;padding:10px;border:none;
+  background:#020617;color:#fff;
+  cursor:pointer;border-radius:12px;
+  font-weight:600
+}
+.tabs button.active{
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9)
+}
+input,button.main{
+  width:100%;padding:12px;margin:8px 0;
+  border:none;border-radius:12px;
+  font-size:15px
+}
+input{background:#020617;color:#fff}
+button.main{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  cursor:pointer;font-weight:600
+}
+#msg{margin-top:10px;font-weight:600}
+.hide{display:none}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <div class="tabs">
+    <button id="tabLogin" class="active" onclick="showLogin()">Đăng nhập</button>
+    <button id="tabReg" onclick="showReg()">Đăng ký</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <input id="lu" placeholder="Tài khoản">
+    <input id="lp" type="password" placeholder="Mật khẩu">
+    <button class="main" onclick="login()">Đăng nhập</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="regBox" class="hide">
+    <input id="ru" placeholder="Tài khoản mới">
+    <input id="rp" type="password" placeholder="Mật khẩu">
+    <button class="main" onclick="register()">Đăng ký</button>
+  </div>
+
+  <div id="msg"></div>
+</div>
+
+<script>
+const MAX_FAIL=3, LOCK=30000
+
+function showLogin(){
+  loginBox.classList.remove("hide")
+  regBox.classList.add("hide")
+  tabLogin.classList.add("active")
+  tabReg.classList.remove("active")
+  msg("")
+}
+function showReg(){
+  regBox.classList.remove("hide")
+  loginBox.classList.add("hide")
+  tabReg.classList.add("active")
+  tabLogin.classList.remove("active")
+  msg("")
+}
+
+function register(){
+  if(!ru.value||!rp.value) return msg("❌ Nhập đủ thông tin")
+  localStorage.setItem("user",ru.value)
+  localStorage.setItem("pass",btoa(rp.value))
+  msg("✅ Đăng ký thành công – chuyển sang đăng nhập")
+  showLogin()
+}
+
+function login(){
+  const now=Date.now(), lock=+localStorage.getItem("lock")||0
+  if(now<lock)
+    return msg("⛔ Bị khóa "+Math.ceil((lock-now)/1000)+"s")
+
+  if(lu.value===localStorage.getItem("user") &&
+     btoa(lp.value)===localStorage.getItem("pass")){
+    localStorage.setItem("login","1")
+    location.href="index.html"
+  }else{
+    let f=(+localStorage.getItem("fail")||0)+1
+    localStorage.setItem("fail",f)
+    if(f>=MAX_FAIL){
+      localStorage.setItem("lock",now+LOCK)
+      localStorage.setItem("fail",0)
+      msg("⛔ Sai 3 lần – khóa 30s")
+    }else msg("❌ Sai tài khoản hoặc mật khẩu")
+  }
+}
+
+function msg(t){document.getElementById("msg").innerHTML=t}
+
+if(localStorage.getItem("login")==="1")
+  location.href="index.html"
+</script>
+
+</body>
+</html>
